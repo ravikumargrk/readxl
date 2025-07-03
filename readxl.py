@@ -39,7 +39,7 @@ for filepath in xlFiles:
         continue
 
     if len(paths) == 1:
-        if '*' in paths[0]:
+        if not '*' in paths[0]:
             prefix1 = ''
         else:
             prefix1 = f'{filepath}:'
