@@ -21,25 +21,26 @@ else:
 
 xlFiles = [f for f in paths if str(f).endswith('.xlsx')]
 
-def load_open_workbook(source_file_path):
+if not xlFiles:
+    print('No XLSX files found with pattern: ' + ' '.join(sys.argv[1:]))
+    exit(0)
+
+def runTemp(source_file_path, func, *args, **kwargs):
     with tempfile.TemporaryDirectory() as temp_dir:
-        # Copy a file into the temp dir
         dest_file_path = os.path.join(temp_dir, os.path.basename(source_file_path))
         shutil.copy2(source_file_path, dest_file_path)
-        # Use the file at runtime
-        wb_data = pd.read_excel(dest_file_path, sheet_name=None, dtype=str)
-    return wb_data
+        return func(dest_file_path, *args, **kwargs)
 
 for filepath in xlFiles:
     try:
         # os.
-        df_dict = load_open_workbook(filepath)
+        df_dict = runTemp(filepath, pd.read_excel, sheet_name=None, dtype=str)
     except:
         print(f'Error reading {filepath}')
         continue
 
-    if len(paths) == 1:
-        if not '*' in paths[0]:
+    if (len(sys.argv) == 2) and (len(paths)==1):
+        if sys.argv[1] == paths[0]:
             prefix1 = ''
         else:
             prefix1 = f'{filepath}:'
@@ -56,6 +57,6 @@ for filepath in xlFiles:
         df = df.fillna('')
         df.index = df.index+1
         for idx, row in df.iterrows():
-            row_str = ','.join(row.tolist())
+            row_str = ','.join(row.tolist()).replace('\n', ' ')
             row_str = f'{prefix1}{prefix2}{idx}:{row_str}'
             print(row_str)
